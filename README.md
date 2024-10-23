@@ -1,4 +1,4 @@
-# US Elections FastAPI Project
+# US Elections Sentiment Analysis
 
 ## Overview
 This project is a FastAPI application designed to provide information and analytics about US elections using Reddit posts.

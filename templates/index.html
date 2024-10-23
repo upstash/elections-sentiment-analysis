@@ -1,0 +1,27 @@
+<!-- templates/index.html -->
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Candidate Sentiment Scores</h1>
+<ul>
+    {% for candidate, score in scores.items() %}
+    <li>
+        <!-- Reload the page with the candidate_name query parameter -->
+        <a href="/?candidate_name={{ candidate }}">{{ candidate }}: {{ score }}</a>
+    </li>
+    {% endfor %}
+</ul>
+
+{% if selected_candidate %}
+    <h2>Recent Posts for {{ selected_candidate }}</h2>
+    <ul>
+        {% for post in posts %}
+        <li>
+            <a href="{{ post.url }}">{{ post.title }}</a> - Score: {{ post.score }}
+        </li>
+        {% endfor %}
+    </ul>
+    <a href="/">Clear Posts</a>
+{% endif %}
+
+{% endblock %}

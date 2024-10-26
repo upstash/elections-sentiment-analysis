@@ -10,10 +10,15 @@
         <a href="/?candidate_name={{ candidate }}">{{ candidate }}: {{ score }}</a>
     </li>
     {% endfor %}
+    {% for candidate, post_count in post_counts.items() %}
+    <li>
+        {{ candidate }} has {{ post_count }} posts in the database.
+    </li>
+    {% endfor %}
 </ul>
 
 {% if selected_candidate %}
-    <h2>Recent Posts for {{ selected_candidate }}</h2>
+    <h2>Posts for {{ selected_candidate }}</h2>
     <ul>
         {% for post in posts %}
         <li>

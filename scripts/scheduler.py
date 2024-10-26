@@ -11,9 +11,9 @@ qstash_token = os.getenv("QSTASH_TOKEN")
 qstash_client = QStash(token=qstash_token)
 
 def schedule_reddit_fetch():
-    response = qstash_client.schedule.create(
+    qstash_client.schedule.create(
         destination=f"{api_base_url}/fetch-posts",
-        cron="*/3 * * * *",  # Every 3 minutes
+        cron="*/10 * * * *",  # Every 10 minutes
         retries=1,
     )
 

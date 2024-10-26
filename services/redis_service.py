@@ -26,10 +26,22 @@ def get_all_posts(candidate: str):
 
 def get_recent_posts(candidate: str, limit: int):
     keys = redis_client.smembers(f"{candidate}:posts")
-    keys = keys[-limit:]  # Get the most recent posts #TODO Check if this is correct
     posts = []
     for key in keys:
         post = redis_client.hgetall(key)
+        # Skip posts with a score of -1 (invalid)
+        if post['score'] == "-1":
+            continue
         posts.append(post)
+        # Limit the number of posts to display
+        if len(posts) >= limit:
+            break
     return posts
 
+def check_post_exists(candidate: str, title: str):
+    key = f"{candidate}:{title}"
+    return redis_client.exists(key)
+
+def get_score(candidate: str, title: str):
+    key = f"{candidate}:{title}"
+    return redis_client.hget(key, "score")

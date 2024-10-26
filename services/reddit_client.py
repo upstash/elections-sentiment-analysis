@@ -18,18 +18,29 @@ reddit = praw.Reddit(
 )
 
 # Function to fetch posts from Reddit
-def fetch_posts(candidate: str, limit: int = 10, sort: str = "new"):
+def fetch_posts(candidate: str, limit: int = 10, sort: str = "hot", time_filter: str = "all") -> list:
     posts = []
     query = candidate
     subreddit = reddit.subreddit("all")
-    for submission in subreddit.search(query, sort=sort):
-        if submission.selftext == "": # Skip posts without text
+    
+    for submission in subreddit.search(query, sort=sort, time_filter=time_filter):
+        if submission.selftext == "":  # Skip posts without text
             continue
+        if submission.score < 10:  # Skip posts with low scores
+            continue
+        
+        # Clean title and selftext to only contain chars that are safe for JSON
+        safe_chars = set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>? ")
+        title = "".join(c for c in submission.title if c in safe_chars)
+        selftext = "".join(c for c in submission.selftext if c in safe_chars)
+        
         posts.append({
-            "title": submission.title,
-            "selftext": submission.selftext,
+            "title": title,
+            "selftext": selftext,
             "url": submission.url
         })
-        if len(posts) >= limit: # Limit the number of posts
+        
+        if len(posts) >= limit:  # Limit the number of posts
             break
+            
     return posts

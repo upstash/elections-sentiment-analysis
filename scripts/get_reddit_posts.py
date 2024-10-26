@@ -1,38 +1,29 @@
 # A script to fetch posts from Reddit and fill our Redis store
-from qstash import QStash
-import os
-from dotenv import load_dotenv
 from services.reddit_client import fetch_posts
-
-load_dotenv()
-
-qstash_client = QStash(os.getenv("QSTASH_TOKEN"))
+from services.qstash_service import publish_message_to_qstash
 
 CANDIDATES = ["Donald Trump", "Kamala Harris"]
+NUMBER_OF_POSTS_TO_FETCH = 100
 
 for candidate in CANDIDATES:
-    top_posts = fetch_posts(candidate, limit=10, sort="top")
-    print("Top posts fetched")
+    relevant_posts = fetch_posts(candidate, limit=NUMBER_OF_POSTS_TO_FETCH, sort="relevant", time_filter="day")
+    print("Relevant posts fetched, count:", len(relevant_posts))
 
-    # Print
-    for post in top_posts:
-        print(post)
-        print(post.title)
-        print(post.url)
-        print(post.selftext)
-
-    hot_posts = fetch_posts(candidate, limit=10, sort="hot")
-    print("Hot posts fetched")
-
-    qstash_client.message.publish_json(
-        url=f"{os.getenv('API_BASE_URL')}/store-post",
+    publish_message_to_qstash(
         body={
-            "posts": top_posts,
+            "posts": relevant_posts,
             "candidate": candidate
         },
-        headers={"Content-Type": "application/json"},
-        retries=1,
+        url="store-post"
     )
 
-if __name__ == "__main__":
-    print("Fetching posts from Reddit...")
+    hot_posts = fetch_posts(candidate, limit=NUMBER_OF_POSTS_TO_FETCH, sort="hot")
+    print("Hot posts fetched, count:", len(hot_posts))
+
+    publish_message_to_qstash(
+        body={
+            "posts": hot_posts,
+            "candidate": candidate
+        },
+        url="store-post"
+    )

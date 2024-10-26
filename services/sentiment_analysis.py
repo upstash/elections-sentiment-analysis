@@ -2,6 +2,7 @@ import os
 from qstash import QStash
 from qstash.chat import openai
 from dotenv import load_dotenv
+from urllib.parse import quote
 
 load_dotenv()
 
@@ -20,16 +21,19 @@ def analyze_sentiment(text: str, candidate: str, title: str):
                 {
                     "role": "user",
                     "content": f"""
-                    Rate the sentiment of the following text between 0 (hate) and 100 (love): '{text}'
-                    Kamala Harris and Donald Trump are both running for president in 2024. Harris is a Democrat, while Trump is a Republican.
-                    Rate the sentiment based on the candidate mentioned in the text.
-                    If the sentiment is positive, rate it closer to 100. If it's negative, rate it closer to 0.
-                    Just type a number between 0 and 100.
+Please assess the sentiment of the following text on a scale from 0 to 100, where 0 represents strong negativity (hate) and 100 represents strong positivity (love):
+
+{text}
+
+The text mentions {candidate}, a 2024 presidential candidate. Rate the sentiment based on the tone toward {candidate}.
+
+Provide a single number between 0 and 100 to reflect the overall sentiment in the text.
+
+Do not include any additional information in your response. Just a number between 0 and 100.
                     """,
                 }
             ],
         },
-        callback=f"{api_base_url}/sentiment-callback?candidate={candidate}&title={title}",
-        headers={"Upstash-Callback-Retries": "1"},
+        callback = f"{api_base_url}/sentiment-callback?candidate={quote(candidate)}&title={quote(title)}",
         retries=1,
     )

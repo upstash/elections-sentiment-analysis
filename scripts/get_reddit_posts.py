@@ -7,7 +7,7 @@ NUMBER_OF_POSTS_TO_FETCH = 100
 
 for candidate in CANDIDATES:
     relevant_posts = fetch_posts(candidate, limit=NUMBER_OF_POSTS_TO_FETCH, sort="relevant", time_filter="day")
-    print("Relevant posts fetched, count:", len(relevant_posts))
+    print(f"Relevant posts fetched for {candidate}, count:", len(relevant_posts))
 
     publish_message_to_qstash(
         body={
@@ -18,7 +18,7 @@ for candidate in CANDIDATES:
     )
 
     hot_posts = fetch_posts(candidate, limit=NUMBER_OF_POSTS_TO_FETCH, sort="hot")
-    print("Hot posts fetched, count:", len(hot_posts))
+    print(f"Hot posts fetched for {candidate}, count:", len(hot_posts))
 
     publish_message_to_qstash(
         body={

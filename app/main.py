@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
 from services.reddit_client import fetch_posts
 from services.sentiment_analysis import analyze_sentiment
-from services.redis_service import store_post, get_all_posts, store_score, get_recent_posts, check_post_exists, get_score
+from services.redis_service import store_post, get_all_posts, store_score, get_recent_posts, check_post_exists, get_score, store_score_history, get_score_history
 from services.qstash_service import publish_message_to_qstash
 import base64
 import json
@@ -23,11 +23,29 @@ DEFAULT_SCORE = -1
 def read_root(request: Request, candidate_name: str = None):
     print("Accessed root endpoint with candidate:", candidate_name)
     candidates = CANDIDATES
-    scores = {}
     posts = []
-    valid_post_count_for_candidates = {}
+    score_history = {}
 
-    # Calculate sentiment scores for all candidates
+    # Get the score history for each candidate
+    for candidate in candidates:
+        score_history[candidate] = get_score_history(candidate)
+
+    # If a candidate is selected, fetch their recent posts
+    if candidate_name:
+        posts = get_recent_posts(candidate_name, limit=NUMBER_OF_POSTS_TO_DISPLAY)
+        print(f"Recent posts for {candidate_name} fetched")
+
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "score_history": score_history,
+        "selected_candidate": candidate_name,
+        "posts": posts
+    })
+
+@app.post("/update-scores")
+def update_scores_endpoint():
+    print("Accessed update-scores endpoint")
+    candidates = CANDIDATES
     for candidate in candidates:
         candidate_posts = get_all_posts(candidate)
         total_score = 0
@@ -41,23 +59,12 @@ def read_root(request: Request, candidate_name: str = None):
                 number_of_valid_scores += 1
             if number_of_valid_scores > 0:
                 average_score = total_score / number_of_valid_scores
-                scores[candidate] = round(average_score, 2)
-                valid_post_count_for_candidates[candidate] = number_of_valid_scores
+                store_score_history(candidate, round(average_score, 2))
+                print(f"Updated score for {candidate}")
             else:
-                scores[candidate] = "No data"
+                print(f"No valid scores found for {candidate}")
 
-    # If a candidate is selected, fetch their recent posts
-    if candidate_name:
-        posts = get_recent_posts(candidate_name, limit=NUMBER_OF_POSTS_TO_DISPLAY)
-        print(f"Recent posts for {candidate_name} fetched")
-
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "scores": scores,
-        "selected_candidate": candidate_name,
-        "posts": posts,
-        "post_counts": valid_post_count_for_candidates
-    })
+    return JSONResponse(content={"status": "Scores updated"})
 
 # This endpoint will be called by the scheduler to fetch the latest posts
 @app.post("/fetch-posts")

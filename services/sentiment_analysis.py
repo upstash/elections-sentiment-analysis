@@ -16,7 +16,7 @@ def analyze_sentiment(text: str, candidate: str, title: str):
     qstash_client.message.publish_json(
         api={"name": "llm", "provider": openai(openai_api_key)},
         body={
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-4-turbo",
             "messages": [
                 {
                     "role": "user",

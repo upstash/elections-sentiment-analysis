@@ -37,3 +37,12 @@ Do not include any additional information in your response. Just a number betwee
         callback = f"{api_base_url}/sentiment-callback?candidate={quote(candidate)}&title={quote(title)}",
         retries=1,
     )
+
+def parse_response(response):
+    score = float(''.join(filter(str.isdigit, response)))
+    print("Parsed score from response:", score)
+    if score > 100:
+        score = 100
+    if score < 0:
+        score = 0
+    return score

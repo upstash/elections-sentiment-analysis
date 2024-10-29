@@ -8,7 +8,7 @@ This project analyzes public sentiment toward U.S. political candidates by gathe
 
 Using QStash, we define a schedule to periodically fetch posts about each candidate from Reddit. The destination URL is set to the `fetch-posts` endpoint, which handles data collection.
 
-Every 10 minutes, we retrieve 10 "hot" and 10 "relevant" posts about each candidate posted in the last hour. Posts already in the database with a valid score (between 0 and 100) are skipped. Otherwise, they are stored in the database with a default invalid score of -1 and sent to the `analyze-sentiment` endpoint.
+Every 10 minutes, we retrieve 10 "hot" and 10 "relevant" posts with 10 or more upvotes about each candidate posted in the last hour. Posts already in the database with a valid score (between 0 and 100) are skipped. Otherwise, they are stored in the database with a default invalid score of -1 and sent to the `analyze-sentiment` endpoint.
 
 Only the latest 50 posts are stored in the database to track sentiment trends over time.
 

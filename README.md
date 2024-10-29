@@ -42,7 +42,7 @@ Sometimes these URLs may take you to news articles or other external sources. Th
 
 1. **Clone the repository:**
     ```bash
-    git clone https://github.com/Abdusshh/US-Elections-2024.git
+    git clone https://github.com/upstash/elections-sentiment-analysis.git
     ```
 
 2. **Create and activate a virtual environment:**

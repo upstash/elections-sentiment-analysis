@@ -93,8 +93,9 @@
     }
 </style>
 
-<h1>Candidate Sentiment Scores</h1>
-<p>The sentiment score for each candidate is between 0 (hate) and 100 (love).</p>
+<h1>Reddit Sentiment Analysis - 2024 Presidential Elections</h1>
+<p>Last Reddit posts are being analyzed and scored by OpenAI. 0 (Hate), 100 (Love)</p>
+<p> Open source project by <a href="https://github.com/upstash/elections-sentiment-analysis" target="_blank">Upstash</a></p>
 
 <div class="chart-container">
     <canvas id="scoreHistoryChart"></canvas>
@@ -107,7 +108,7 @@
             <ul>
                 {% for post in candidate_posts %}
                 <li class="post-item">
-                    <a href="{{ post.url }}" class="post-title">{{ post.title[:50] }}{% if post.title|length > 50 %}...{% endif %}</a>
+                    <a href="{{ post.url }}" class="post-title" target="_blank">{{ post.title[:50] }}{% if post.title|length > 50 %}...{% endif %}</a>
                     <span class="post-score">Score: {{ post.score }}</span>
                 </li>
                 {% endfor %}
@@ -180,7 +181,7 @@
 <footer>
     <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
         <img src="https://upstash.com/logo/upstash-icon-white-bg.png" alt="Upstash Logo" width="16" height="16">
-        <span>Powered by Upstash Redis <img src="https://upstash.com/logo/redis-icon.png" alt="Upstash Redis Logo" width="16" height="16">  and QStash  <img src="https://upstash.com/logo/qstash-icon.png" alt="Upstash QStash Logo" width="16" height="16"></span> | 
+        <span> <a href="https://upstash.com/?utm_source=elections-sentiment-analysis" target="_black"> Powered by Upstash</a> Redis <img src="https://upstash.com/logo/redis-icon.png" alt="Upstash Redis Logo" width="16" height="16">  and QStash  <img src="https://upstash.com/logo/qstash-icon.png" alt="Upstash QStash Logo" width="16" height="16"></span> | 
         <a href="https://github.com/upstash/elections-sentiment-analysis" target="_blank">Check the GitHub Repo</a>
     </div>
 </footer>

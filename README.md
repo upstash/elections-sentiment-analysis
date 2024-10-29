@@ -14,7 +14,7 @@ Only the latest 50 posts are stored in the database to track sentiment trends ov
 
 ### Sentiment Analysis
 
-Once a post reaches the `analyze-sentiment` endpoint, its sentiment is analyzed using OpenAI's `gpt-3.5-turbo` model. We use QStash's LLM integration, allowing us to define a callback URL triggered when the model finishes processing the input. This callback URL, set to the `sentiment-callback` endpoint, receives the encoded sentiment score and updates the post’s score in the database.
+Once a post reaches the `analyze-sentiment` endpoint, its sentiment is analyzed using OpenAI's `gpt-4-turbo` model. We use QStash's LLM integration, allowing us to define a callback URL triggered when the model finishes processing the input. This callback URL, set to the `sentiment-callback` endpoint, receives the encoded sentiment score and updates the post’s score in the database.
 
 If sentiment analysis fails, and the same post is encountered again in a future fetch, we retry the sentiment analysis.
 

@@ -3,8 +3,8 @@ from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse
 from services.reddit_client import fetch_posts
-from services.sentiment_analysis import analyze_sentiment
-from services.redis_service import store_post, get_all_posts, store_score, get_recent_posts, check_post_exists, get_score, store_score_history, get_score_history
+from services.sentiment_analysis import analyze_sentiment, parse_response
+from services.redis_service import store_post, get_all_posts, store_score, get_recent_posts, check_post_exists, get_score, store_score_history, get_score_history, make_score_histories_equal_length
 from services.qstash_service import publish_message_to_qstash
 import base64
 import json
@@ -13,32 +13,31 @@ app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
 
-NUMBER_OF_POSTS_TO_FETCH = 10  # Based on function timeouts
+NUMBER_OF_POSTS_TO_FETCH = 10 
 CANDIDATES = ["Donald Trump", "Kamala Harris"]
 NUMBER_OF_POSTS_TO_DISPLAY = 10
 DEFAULT_SCORE = -1
 
 # This endpoint will display the sentiment scores for each candidate
 @app.get("/")
-def read_root(request: Request, candidate_name: str = None):
-    print("Accessed root endpoint with candidate:", candidate_name)
+def read_root(request: Request):
+    print("Accessed root endpoint")
     candidates = CANDIDATES
-    posts = []
+    posts = {}
     score_history = {}
 
     # Get the score history for each candidate
     for candidate in candidates:
         score_history[candidate] = get_score_history(candidate)
 
-    # If a candidate is selected, fetch their recent posts
-    if candidate_name:
-        posts = get_recent_posts(candidate_name, limit=NUMBER_OF_POSTS_TO_DISPLAY)
-        print(f"Recent posts for {candidate_name} fetched")
+    # Fetch recent posts for both Trump and Harris
+    for candidate in ["Donald Trump", "Kamala Harris"]:
+        posts[candidate] = get_recent_posts(candidate, limit=NUMBER_OF_POSTS_TO_DISPLAY)
+        print(f"Recent posts for {candidate} fetched")
 
     return templates.TemplateResponse("index.html", {
         "request": request,
         "score_history": score_history,
-        "selected_candidate": candidate_name,
         "posts": posts
     })
 
@@ -47,11 +46,16 @@ def update_scores_endpoint():
     print("Accessed update-scores endpoint")
     candidates = CANDIDATES
     for candidate in candidates:
+        print(f"Getting posts for {candidate}")
         candidate_posts = get_all_posts(candidate)
+        print(f"Updating scores for {candidate}")
         total_score = 0
         number_of_valid_scores = 0
+        i = 0
         if candidate_posts:
             for post in candidate_posts:
+                print(f"Post {i}: {post['title']}")
+                i += 1
                 # Skip posts with a score of -1
                 if post['score'] == str(DEFAULT_SCORE):
                     continue
@@ -65,6 +69,16 @@ def update_scores_endpoint():
                 print(f"No valid scores found for {candidate}")
 
     return JSONResponse(content={"status": "Scores updated"})
+
+@app.post("/update-scores-failed")
+def update_scores_failed_endpoint():
+    print("Accessed update-scores-failed endpoint")
+
+    # Make the score_history for each candidate the same length as the shortest one
+    candidates = CANDIDATES
+    make_score_histories_equal_length(candidates[0], candidates[1])
+
+    return JSONResponse(content={"status": "Scores update failed"})
 
 # This endpoint will be called by the scheduler to fetch the latest posts
 @app.post("/fetch-posts")
@@ -150,15 +164,6 @@ async def sentiment_callback(candidate: str, title: str, request: Request):
     store_score(candidate, title, score)
 
     return JSONResponse(content={"status": "Sentiment score stored"})
-
-def parse_response(response):
-    score = float(''.join(filter(str.isdigit, response)))
-    print("Parsed score from response:", score)
-    if score > 100:
-        score = 100
-    if score < 0:
-        score = 0
-    return score
 
 @app.get('/favicon.ico', include_in_schema=False)
 async def favicon():

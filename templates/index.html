@@ -2,10 +2,10 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!-- Add a Roboto font -->
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
+    /* Styles for page and layout */
     body {
         font-family: 'Roboto', sans-serif;
         color: #333;
@@ -30,32 +30,24 @@
         margin-top: -10px;
         margin-bottom: 20px;
     }
-    ul {
-        list-style-type: none;
-        padding: 0;
-        text-align: center;
-    }
-    ul li {
-        font-size: 16px;
-        margin: 5px 0;
-    }
-    .candidate-link {
-        font-weight: bold;
-        color: #0056b3;
-        text-decoration: none;
-    }
-    .candidate-link:hover {
-        text-decoration: underline;
-    }
     .chart-container {
         width: 90%;
         max-width: 1100px;
         margin: 20px auto;
     }
-    .post-list {
-        max-width: 600px;
+    .posts-container {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        max-width: 1200px;
         margin: 20px auto;
+    }
+    .post-list {
+        width: 45%;
         text-align: left;
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 5px;
     }
     .post-item {
         display: flex;
@@ -77,18 +69,6 @@
         font-size: 16px;
         font-weight: bold;
         color: #444;
-    }
-    .clear-posts {
-        text-align: center;
-        margin-top: 20px;
-    }
-    .clear-posts a {
-        color: #0056b3;
-        text-decoration: none;
-        font-weight: bold;
-    }
-    .clear-posts a:hover {
-        text-decoration: underline;
     }
     footer {
     font-size: 14px;
@@ -114,63 +94,44 @@
 </style>
 
 <h1>Candidate Sentiment Scores</h1>
-<p>
-    The sentiment score for each candidate is between 0 (hate) and 100 (love).
-</p>
+<p>The sentiment score for each candidate is between 0 (hate) and 100 (love).</p>
 
-<!-- Chart container with centered styling -->
 <div class="chart-container">
     <canvas id="scoreHistoryChart"></canvas>
 </div>
 
-
-
-<ul>
-    {% for candidate, score_hist in score_history.items() %}
-    <li>
-        View posts about <a href="/?candidate_name={{ candidate }}" class="candidate-link">{{ candidate }}</a>
-    </li>
+<div class="posts-container">
+    {% for candidate, candidate_posts in posts.items() %}
+        <div class="post-list">
+            <h2 style="text-align: center;">Recent Posts for {{ candidate }}</h2>
+            <ul>
+                {% for post in candidate_posts %}
+                <li class="post-item">
+                    <a href="{{ post.url }}" class="post-title">{{ post.title[:50] }}{% if post.title|length > 50 %}...{% endif %}</a>
+                    <span class="post-score">Score: {{ post.score }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
     {% endfor %}
-</ul>
-
-{% if selected_candidate %}
-    <div class="post-list">
-        <h2 style="text-align: center;">Posts for {{ selected_candidate }}</h2>
-        <ul>
-            {% for post in posts %}
-            <li class="post-item">
-                <a href="{{ post.url }}" class="post-title">{{ post.title[:50] }}{% if post.title|length > 50 %}...{% endif %}</a>
-                <span class="post-score">Score: {{ post.score }}</span>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    <div class="clear-posts">
-        <a href="/">Clear Posts</a>
-    </div>
-{% endif %}
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Prepare data for the line chart
     const scoreHistory = {{ score_history | tojson }};
     const datasets = [];
 
-    // Create a dataset for each candidate
     for (const candidate in scoreHistory) {
         const candidateScores = scoreHistory[candidate].map(score => parseFloat(score));
-
-        // Add a dataset for each candidate
         datasets.push({
             label: candidate,
             data: candidateScores,
-            borderColor: candidate == 'Donald Trump' ? 'rgb(234, 59, 60)' : 'rgb(0, 102, 203)', // Red for Donald Trump, blue for others
+            borderColor: candidate == 'Donald Trump' ? 'rgb(234, 59, 60)' : 'rgb(0, 102, 203)',
             fill: false,
-            tension: 0.1 // Smooth curves for the lines
+            tension: 0.1
         });
     }
 
-    // Generate time labels for the last x values
     function generateTimeLabels(length) {
         const labels = [];
         let currentTime = new Date();
@@ -185,11 +146,9 @@
             }));
             currentTime.setHours(currentTime.getHours() - 1); // Go back one hour
         }
-
         return labels;
     }
 
-    // Render the chart with generated time labels
     const ctx = document.getElementById('scoreHistoryChart').getContext('2d');
     new Chart(ctx, {
         type: 'line',
@@ -217,12 +176,11 @@
     });
 </script>
 
-<!-- Footer Section -->
+<!-- Footer -->
 <footer>
     <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-        <!-- Upstash Icon -->
         <img src="https://upstash.com/logo/upstash-icon-white-bg.png" alt="Upstash Logo" width="16" height="16">
-        <span>Powered by Upstash Redis <img src="https://upstash.com/logo/redis-icon.png" alt="Upstash Logo" width="16" height="16">  and QStash  <img src="https://upstash.com/logo/qstash-icon.png" alt="Upstash Logo" width="16" height="16"></span> | 
+        <span>Powered by Upstash Redis <img src="https://upstash.com/logo/redis-icon.png" alt="Upstash Redis Logo" width="16" height="16">  and QStash  <img src="https://upstash.com/logo/qstash-icon.png" alt="Upstash QStash Logo" width="16" height="16"></span> | 
         <a href="https://github.com/upstash/elections-sentiment-analysis" target="_blank">Check the GitHub Repo</a>
     </div>
 </footer>

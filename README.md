@@ -45,13 +45,17 @@ Sometimes these URLs may take you to news articles or other external sources. Th
     git clone https://github.com/upstash/elections-sentiment-analysis.git
     ```
 
-2. **Create and activate a virtual environment:**
+2. **Set up the environment variables:**
+    - Rename `.env.example` to `.env`.
+    - Fill in the required environment variables in the `.env` file.
+
+3. **Create and activate a virtual environment:**
     ```bash
     python3 -m venv venv
     source venv/bin/activate  # On Windows use `venv\Scripts\activate`
     ```
 
-3. **Install the dependencies:**
+4. **Install the dependencies:**
     ```bash
     pip install -r requirements.txt
     ```

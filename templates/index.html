@@ -2,188 +2,138 @@
 {% extends "base.html" %}
 {% block content %}
 
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+<main class="prose text-xs md:text-base max-w-screen-lg mx-auto px-6 py-12">
+  <header class="text-center">
+    <h1 class="m-0">
+      <span>Reddit Sentiment Analysis</span> <br>
+      <span class="font-normal">2024 Presidential Elections</span>
+    </h1>
+    <h3 class="font-normal mt-0 opacity-60">
+      Last Reddit posts are being analyzed and scored by OpenAI. 0:Hate, 100:Love
+    </h3>
+  </header>
 
-<style>
-    /* Styles for page and layout */
-    body {
-        font-family: 'Roboto', sans-serif;
-        color: #333;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-    }
-    h1 {
-        font-size: 26px;
-        font-weight: bold;
-        color: #333;
-        text-align: center;
-        margin-top: 20px;
-    }
-    p {
-        font-size: 16px;
-        color: #666;
-        text-align: center;
-        margin-top: -10px;
-        margin-bottom: 20px;
-    }
-    .chart-container {
-        width: 90%;
-        max-width: 1100px;
-        margin: 20px auto;
-    }
-    .posts-container {
-        display: flex;
-        justify-content: space-between;
-        gap: 20px;
-        max-width: 1200px;
-        margin: 20px auto;
-    }
-    .post-list {
-        width: 45%;
-        text-align: left;
-        border: 1px solid #ddd;
-        padding: 10px;
-        border-radius: 5px;
-    }
-    .post-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px;
-        border-bottom: 1px solid #ddd;
-    }
-    .post-title {
-        font-size: 16px;
-        color: #0056b3;
-        text-decoration: none;
-        max-width: 70%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-    .post-score {
-        font-size: 16px;
-        font-weight: bold;
-        color: #444;
-    }
-    footer {
-    font-size: 14px;
-    color: #333;
-    text-align: center;
-    padding: 20px 0;
-    border-top: 1px solid #ddd;
-    width: 100%;
-    background-color: #f8f8f8;
-    margin-top: 30px;
-    }
-    footer a {
-        color: #05061c;
-        text-decoration: none;
-        font-weight: bold;
-    }
-    footer a:hover {
-        text-decoration: underline;
-    }
-    footer img {
-        vertical-align: middle;
-    }
-</style>
+  <div class="mt-8 md:mt-12">
+    <canvas id="scoreHistoryChart"/>
+  </div>
 
-<h1>Reddit Sentiment Analysis - 2024 Presidential Elections</h1>
-<p>Last Reddit posts are being analyzed and scored by OpenAI. 0 (Hate), 100 (Love)</p>
-<p> Open source project by <a href="https://github.com/upstash/elections-sentiment-analysis" target="_blank">Upstash</a></p>
-
-<div class="chart-container">
-    <canvas id="scoreHistoryChart"></canvas>
-</div>
-
-<div class="posts-container">
+  <div class="mt-8 md:mt-16 grid md:grid-cols-2 gap-8">
     {% for candidate, candidate_posts in posts.items() %}
-        <div class="post-list">
-            <h2 style="text-align: center;">Recent Posts for {{ candidate }}</h2>
-            <ul>
-                {% for post in candidate_posts %}
-                <li class="post-item">
-                    <a href="{{ post.url }}" class="post-title" target="_blank">{{ post.title[:50] }}{% if post.title|length > 50 %}...{% endif %}</a>
-                    <span class="post-score">Score: {{ post.score }}</span>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
+    <div class="border p-6 rounded-xl">
+      <h3 class="mt-0">Recent Posts for {{ candidate }}</h3>
+
+      <ul class="pl-0">
+        {% for post in candidate_posts %}
+        <li class="p-0 py-1 flex items-center gap-4 m-0 border-t border-dashed">
+          <a class="line-clamp-1 font-normal" href="{{ post.url }}" target="_blank">{{ post.title }}</a>
+          <span class="ml-auto text-nowrap font-bold text-sm">{{ post.score }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
     {% endfor %}
-</div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-8 md:mt-16 *:m-0 p-8 bg-emerald-50 rounded-xl text-center">
+    <p>
+      Open source project
+      <a href="https://upstash.com/?utm_source=elections-sentiment-analysis">
+         on GitHub
+      </a>
+    </p>
+
+    <p>
+      Powered by <a href="https://upstash.com/?utm_source=elections-sentiment-analysis"
+                    target="_black"
+                    class="inline-flex items-center">
+      <img class="m-0" src="https://upstash.com/logo/upstash-icon-white-bg.png" alt="Upstash Logo"
+           width="16" height="16"> Upstash
+    </a>
+    </p>
+  </footer>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const scoreHistory = {{ score_history | tojson }};
-    const datasets = [];
+  // @formatter:off
+  const scoreHistory = {{score_history | tojson}};
+  // @formatter:on
 
-    for (const candidate in scoreHistory) {
-        const candidateScores = scoreHistory[candidate].map(score => parseFloat(score));
-        datasets.push({
-            label: candidate,
-            data: candidateScores,
-            borderColor: candidate == 'Donald Trump' ? 'rgb(234, 59, 60)' : 'rgb(0, 102, 203)',
-            fill: false,
-            tension: 0.1
-        });
-    }
+  const datasets = [];
 
-    function generateTimeLabels(length) {
-        const labels = [];
-        let currentTime = new Date();
-
-        for (let i = 0; i < length; i++) {
-            labels.unshift(currentTime.toLocaleString("en-US", {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-                month: "short",
-                day: "numeric"
-            }));
-            currentTime.setHours(currentTime.getHours() - 1); // Go back one hour
-        }
-        return labels;
-    }
-
-    const ctx = document.getElementById('scoreHistoryChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: generateTimeLabels(scoreHistory[Object.keys(scoreHistory)[0]].length),
-            datasets: datasets
-        },
-        options: {
-            scales: {
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Time'
-                    }
-                },
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Sentiment Score'
-                    }
-                }
-            }
-        }
+  for (const candidate in scoreHistory) {
+    const candidateScores = scoreHistory[candidate].map(score => parseFloat(score));
+    datasets.push({
+      label: candidate,
+      data: candidateScores,
+      borderColor: candidate == 'Donald Trump' ? 'rgb(234, 59, 60)' : 'rgb(0, 102, 203)',
+      fill: false,
+      tension: 0.1
     });
-</script>
+  }
 
-<!-- Footer -->
-<footer>
-    <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-        <img src="https://upstash.com/logo/upstash-icon-white-bg.png" alt="Upstash Logo" width="16" height="16">
-        <span> <a href="https://upstash.com/?utm_source=elections-sentiment-analysis" target="_black"> Powered by Upstash</a> Redis <img src="https://upstash.com/logo/redis-icon.png" alt="Upstash Redis Logo" width="16" height="16">  and QStash  <img src="https://upstash.com/logo/qstash-icon.png" alt="Upstash QStash Logo" width="16" height="16"></span> | 
-        <a href="https://github.com/upstash/elections-sentiment-analysis" target="_blank">Check the GitHub Repo</a>
-    </div>
-</footer>
+  function generateTimeLabels(length) {
+    const labels = [];
+    let currentTime = new Date();
+
+    for (let i = 0; i < length; i++) {
+      labels.unshift(currentTime.toLocaleString("en-US", {
+        hour: "numeric",
+        minute: "numeric",
+        month: "numeric",
+        day: "numeric"
+      }));
+      currentTime.setHours(currentTime.getHours() - 1); // Go back one hour
+    }
+
+    return labels;
+  }
+
+  const ctx = document.getElementById('scoreHistoryChart').getContext('2d');
+
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: generateTimeLabels(scoreHistory[Object.keys(scoreHistory)[0]].length),
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      aspectRatio: 3,
+      plugins: {
+        legend: {
+          // position: 'bottom',
+          labels: {
+            color: "black",
+            font: {
+              size: 16,
+              weight: 'bold',
+            }
+          }
+        },
+      },
+      scales: {
+        x: {
+          // type: 'time',
+          ticks: {
+            source: 'auto',
+            maxRotation: 0,
+            autoSkip: true,
+          },
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Sentiment Score'
+          }
+        }
+      }
+    }
+  });
+</script>
 
 {% endblock %}

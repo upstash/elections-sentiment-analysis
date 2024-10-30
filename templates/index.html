@@ -2,7 +2,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-<main class="prose text-xs md:text-base max-w-screen-lg mx-auto px-6 py-12">
+<main class="prose text-xs md:text-base max-w-screen-lg mx-auto px-6 py-16">
   <header class="text-center">
     <h1 class="m-0">
       <span>Reddit Sentiment Analysis</span> <br>
@@ -11,6 +11,24 @@
     <h3 class="font-normal mt-0 opacity-60">
       Last Reddit posts are being analyzed and scored by OpenAI. 0:Hate, 100:Love
     </h3>
+
+    <p class="sm:inline-flex items-center px-6 py-1 bg-zinc-100 rounded">
+      <span>
+        Open source project
+        <a href="https://github.com/upstash/elections-sentiment-analysis" target="_black">
+          on GitHub
+        </a>
+      </span>
+
+      <span class="mx-2 hidden sm:inline-flex">•</span>
+
+      <span class="block sm:inline-flex">
+        Powered by <a href="https://upstash.com/?utm_source=elections-sentiment-analysis"
+                      target="_black"
+                      class="inline-flex items-center">Upstash
+      </a> and <a href="https://openai.com/?utm_source=elections-sentiment-analysis" target="_blank">OpenAI</a>
+      </span>
+    </p>
   </header>
 
   <div class="mt-8 md:mt-12">
@@ -25,7 +43,8 @@
       <ul class="pl-0">
         {% for post in candidate_posts %}
         <li class="p-0 py-1 flex items-center gap-4 m-0 border-t border-dashed">
-          <a class="line-clamp-1 font-normal" href="{{ post.url }}" target="_blank">{{ post.title }}</a>
+          <a class="line-clamp-1 font-normal" href="{{ post.url }}" target="_blank">{{ post.title
+            }}</a>
           <span class="ml-auto text-nowrap font-bold text-sm">{{ post.score }}</span>
         </li>
         {% endfor %}
@@ -33,25 +52,6 @@
     </div>
     {% endfor %}
   </div>
-
-  <!-- Footer -->
-  <footer class="mt-8 md:mt-16 *:m-0 p-8 bg-emerald-50 rounded-xl text-center">
-    <p>
-      Open source project
-      <a href="https://upstash.com/?utm_source=elections-sentiment-analysis">
-         on GitHub
-      </a>
-    </p>
-
-    <p>
-      Powered by <a href="https://upstash.com/?utm_source=elections-sentiment-analysis"
-                    target="_black"
-                    class="inline-flex items-center">
-      <img class="m-0" src="https://upstash.com/logo/upstash-icon-white-bg.png" alt="Upstash Logo"
-           width="16" height="16"> Upstash
-    </a>
-    </p>
-  </footer>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
